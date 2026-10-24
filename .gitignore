@@ -1,0 +1,7 @@
+
+# Compiled Java files
+bin/
+*.class
+
+# Generated reports
+reports/

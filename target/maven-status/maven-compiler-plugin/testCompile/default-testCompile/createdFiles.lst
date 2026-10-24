@@ -1,8 +1,0 @@
-com\campus\simulator\model\ResourceModelTest.class
-com\campus\simulator\model\ResourceRequestTest.class
-com\campus\simulator\repository\RepositoryTest.class
-com\campus\simulator\model\RequesterModelTest.class
-com\campus\simulator\model\TimeSlotTest.class
-com\campus\simulator\service\AllocationConflictDetectionTest.class
-com\campus\simulator\service\AllocationServiceWorkflowTest.class
-com\campus\simulator\service\AllocationStrategyTest.class

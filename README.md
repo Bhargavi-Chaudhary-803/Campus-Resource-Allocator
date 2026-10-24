@@ -1,289 +1,266 @@
-# Campus Resource Allocation Simulator
+﻿# Campus Resource Allocation Simulator
 
-A clean, production-grade Java desktop application simulating the automated allocation of limited university campus resources (such as lecture halls, computer laboratories, BSL-2 biochemistry facilities, portable 4K projectors, laptop carts, sports stadiums, and quiet study pods) to competing academic departments, faculty researchers, student clubs, and event organizers.
-
-Built strictly with **Java 17+ (tested on Java 26)**, **JUnit 5**, and a subtle, functional **Java Swing** desktop user interface featuring tightly spaced **Inter typography**.
-
----
-
-## Table of Contents
-1. [Project Purpose & Vision](#project-purpose--vision)
-2. [How to Build & Run](#how-to-build--run)
-3. [Core Features](#core-features)
-4. [Package Architecture](#package-architecture)
-5. [Demonstration of OOP & SOLID Principles](#demonstration-of-oop--solid-principles)
-6. [Design Patterns Implemented](#design-patterns-implemented)
-7. [Allocation Engine Strategies](#allocation-engine-strategies)
-8. [Testing & Verification](#testing--verification)
-9. [Future Extensions](#future-extensions)
+> **A Pure Java Desktop Project for College Evaluation & Viva Demonstration**
+> Designed with crystal-clear **Object-Oriented Programming (OOP)** principles, modern software design patterns, and a clean, subtle **Java Swing** user interface in a blue & off-white aesthetic with tight-spaced Inter typography.
+> **Zero build frameworks required** â€” no Maven, no Gradle, no external dependencies. Compiles and runs out-of-the-box with standard Java 17+.
 
 ---
 
-## 1. Project Purpose & Vision
-
-University campuses possess diverse physical assets with varying capacities, safety clearance requirements, and operational readiness. Simultaneously, diverse campus entities—ranging from accredited academic departments to student cultural clubs—compete for overlapping time slots.
-
-This project simulates how campus resource dispatching can be resolved deterministically using swappable algorithmic strategies:
-- **Priority-First**: Respects institutional seniority and immediate request urgency with FIFO tie-breaking.
-- **Fairness-Aware**: Applies a progressive fairness penalty to entities that have already secured substantial campus resources, allowing unserviced clubs and junior faculty an equitable share.
-- **Capacity-Optimized**: Implements a Best-Fit heuristic to minimize seat and space waste, ensuring a 150-seat lecture hall is not squandered on a 20-person review session when a 25-person seminar room is available.
-
-The system is designed as an extensible simulator running entirely in-memory behind repository and capability abstractions, allowing persistent SQL, JPA, or document repositories to be plugged in without changing domain business logic.
+## ðŸ“‘ Table of Contents
+1. [Project Overview](#1-project-overview)
+2. [Quick Start (Build & Run)](#2-quick-start-build--run)
+3. [Key Features & Screens](#3-key-features--screens)
+4. [Project Architecture & Package Structure](#4-project-architecture--package-structure)
+5. [Explicit Demonstration of OOP Principles](#5-explicit-demonstration-of-oop-principles)
+6. [Design Patterns Implemented](#6-design-patterns-implemented)
+7. [Core Java Concepts Demonstrated](#7-core-java-concepts-demonstrated)
+8. [Automated Verification Test Suite](#8-automated-verification-test-suite)
+9. [Viva / Oral Examination Questions & Answers](#9-viva--oral-examination-questions--answers)
 
 ---
 
-## 2. How to Build & Run
+## 1. Project Overview
 
-### Prerequisites
-- **JDK 17 or later** (JDK 17, 21, or 26)
-- **Apache Maven 3.8+** (or use the bundled `./mvnw` / `mvnw.cmd` wrapper)
+On any university campus, limited facilitiesâ€”lecture halls, advanced research laboratories, auditoriums, and portable audiovisual equipmentâ€”face intense competition from academic departments, tenured and junior faculty, student clubs, and event organizers.
 
-### Command-Line Instructions
+The **Campus Resource Allocation Simulator** models this real-world operational challenge:
+- Detects **double-booking** and **schedule collisions** across overlapping time slots.
+- Enforces **institutional safety policies** (e.g., student clubs are barred from booking hazardous biosafety laboratories without faculty oversight).
+- Allows campus administrators to switch between **three algorithmic allocation strategies** at runtime to see how different rules affect fairness and facility utilization.
+- Generates and exports official **audit reports** to text files for administrative record-keeping.
 
-#### Compile & Run Tests
+---
+
+## 2. Quick Start (Build & Run)
+
+### System Requirements
+- **Java Development Kit (JDK) 17 or higher** (tested on Java 17, 21, and 26).
+- Standard terminal / command prompt.
+
+### Windows (One-Click Scripts)
+```cmd
+# 1. Compile the application
+compile.bat
+
+# 2. Launch the desktop GUI
+run.bat
+
+# 3. Run the automated OOP test suite
+test.bat
+```
+
+### Linux / macOS
 ```bash
-# Using standard Maven
-mvn clean test
+# Make scripts executable
+chmod +x compile.sh run.sh test.sh
 
-# Or using the Maven Wrapper (Windows PowerShell)
-.\mvnw.cmd clean test
+# 1. Compile
+./compile.sh
 
-# Linux / macOS
-./mvnw clean test
+# 2. Launch GUI
+./run.sh
+
+# 3. Run test suite
+./test.sh
 ```
 
-#### Package Standalone Executable JAR
+### Manual Command-Line (Cross-Platform)
 ```bash
-mvn clean package
-# Or: .\mvnw.cmd clean package
-```
+# Compile to 'bin' directory
+javac -encoding UTF-8 -d bin -sourcepath src src/com/campus/Main.java src/com/campus/VerificationTest.java
 
-#### Launch Desktop Simulator
-```bash
-java -jar target/campus-resource-simulator.jar
-```
+# Run Desktop Application
+java -cp bin com.campus.Main
 
----
-
-## 3. Core Features
-
-- **Executive Telemetry Dashboard**: Real-time metric cards reporting total campus assets, available operational units, active reservations, waitlisted demands, and resource utilization percentages alongside recent allocations.
-- **Interactive Asset Management**: Manage Classrooms, Laboratories, Projectors, Laptop Sets, Sports Facilities, and Study Rooms. Dynamically mark assets under scheduled maintenance or return them to active service.
-- **University Requester Registry**: Manage Academic Departments, Tenured/Assistant Faculty, Student Organizations, and Event Committees. Toggle active/inactive eligibility or adjust institutional priority tiers.
-- **Request Submission & State Machine**: Submit reservations with date, time, duration, required capacity, purpose, and urgency. Controlled lifecycle transitions (`PENDING` → `APPROVED`, `WAITLISTED`, `REJECTED`, `CANCELLED`, `COMPLETED`).
-- **Multi-Strategy Simulation Engine**: Compare `Priority-First`, `Fairness-Aware`, and `Capacity-Optimized` algorithms. Non-blocking asynchronous execution via `SwingWorker` with full conflict diagnostics and candidate evaluation logs.
-- **Analytical Capacity Reports**: Demand breakdowns by requester classification, asset category demand indices, and top peak congestion time intervals.
-- **Instant Data Reset**: One-click re-seeding with realistic demo assets, requesters, and deliberate scheduling collisions.
-
----
-
-## 4. Package Architecture
-
-```
-com.campus.simulator
-├── App.java                              # Main bootstrap entrypoint
-├── SimulationContext.java                # Top-level DI and service assembly
-│
-├── model/                                # Pure domain entities and rules
-│   ├── schedule/
-│   │   └── TimeSlot.java                 # Immutable interval value object
-│   ├── resource/
-│   │   ├── Bookable.java                 # Capability interface
-│   │   ├── Maintainable.java             # Capability interface
-│   │   ├── CapacityProvider.java         # Capability interface
-│   │   ├── PortableResource.java         # Capability interface
-│   │   ├── Resource.java                 # Abstract base class
-│   │   ├── ResourceStatus.java           # AVAILABLE, MAINTENANCE, RETIRED
-│   │   ├── ResourceType.java             # 6 Campus asset types
-│   │   ├── Classroom.java                # Concrete resource
-│   │   ├── Laboratory.java               # Concrete resource (safety clearances)
-│   │   ├── Projector.java                # Concrete resource (portable)
-│   │   ├── LaptopSet.java                # Concrete resource (portable)
-│   │   ├── SportsFacility.java           # Concrete resource
-│   │   ├── StudyRoom.java                # Concrete resource
-│   │   └── ResourceFactory.java          # Factory Method pattern
-│   ├── requester/
-│   │   ├── Requester.java                # Abstract base class
-│   │   ├── PriorityTier.java             # CRITICAL, HIGH, MEDIUM, LOW
-│   │   ├── RequesterType.java            # DEPARTMENT, FACULTY, CLUB, EVENT
-│   │   ├── Department.java               # High institutional priority
-│   │   ├── FacultyMember.java            # Academic priority
-│   │   ├── StudentClub.java              # Standard priority (safety restrictions)
-│   │   ├── EventOrganizer.java           # Attendance-scaled priority
-│   │   └── RequesterFactory.java         # Factory Method pattern
-│   └── allocation/
-│       ├── RequestPriority.java          # LOW, NORMAL, HIGH, URGENT
-│       ├── RequestStatus.java            # Lifecycle state machine enum
-│       ├── AllocationStatus.java         # ACTIVE, RELEASED, COMPLETED, CANCELLED
-│       ├── AllocationOutcome.java        # APPROVED, WAITLISTED, REJECTED
-│       ├── ResourceRequest.java          # Domain request entity
-│       ├── ResourceRequestBuilder.java   # Builder pattern
-│       ├── Allocation.java               # Reservation binding entity
-│       ├── AllocationResult.java         # Diagnostic result value object
-│       └── AllocationResultBuilder.java  # Builder pattern
-│
-├── service/                              # Application use cases & orchestration
-│   ├── ResourceService.java              # Resource inventory use cases
-│   ├── RequesterService.java             # Requester enrollment use cases
-│   ├── ResourceRequestService.java       # Scheduling request use cases
-│   ├── AllocationService.java            # Strategy execution & release use cases
-│   ├── SimulationService.java            # Batch simulation orchestrator
-│   ├── ReportingService.java             # Analytics & capacity metrics
-│   ├── SampleDataSeeder.java             # Baseline demo data generator
-│   └── allocation/
-│       ├── AllocationStrategy.java       # Strategy interface
-│       ├── AllocationStrategyType.java   # Enum of strategies
-│       ├── AbstractAllocationStrategy.java # Shared validation & collision detection
-│       ├── PriorityFirstAllocationStrategy.java
-│       ├── FairnessAwareAllocationStrategy.java
-│       ├── CapacityOptimizedAllocationStrategy.java
-│       └── AllocationStrategyFactory.java # Factory Method pattern
-│
-├── repository/                           # Data access abstractions & storage
-│   ├── ResourceRepository.java
-│   ├── RequesterRepository.java
-│   ├── ResourceRequestRepository.java
-│   ├── AllocationRepository.java
-│   ├── InMemoryResourceRepository.java   # Thread-safe ConcurrentHashMap storage
-│   ├── InMemoryRequesterRepository.java
-│   ├── InMemoryResourceRequestRepository.java
-│   └── InMemoryAllocationRepository.java
-│
-├── observer/                             # Domain event pub-sub mechanism
-│   ├── DomainEvent.java                  # Event interface
-│   ├── DomainEventListener.java          # Functional subscriber interface
-│   ├── DomainEventPublisher.java         # Thread-safe event dispatcher
-│   ├── ResourceAddedEvent.java
-│   ├── ResourceStatusChangedEvent.java
-│   ├── ResourceRemovedEvent.java
-│   ├── RequesterAddedEvent.java
-│   ├── RequestSubmittedEvent.java
-│   ├── RequestStatusChangedEvent.java
-│   ├── AllocationApprovedEvent.java
-│   ├── AllocationReleasedEvent.java
-│   ├── SimulationCompletedEvent.java
-│   └── SimulationResetEvent.java
-│
-├── exception/                            # Custom domain unchecked exceptions
-│   ├── CampusSimulatorException.java
-│   ├── ValidationException.java
-│   ├── InvalidRequestException.java
-│   ├── ResourceUnavailableException.java
-│   ├── DuplicateResourceException.java
-│   ├── AllocationConflictException.java
-│   └── EntityNotFoundException.java
-│
-├── util/                                 # Domain utilities
-│   ├── ValidationUtils.java              # Defensive programming guards
-│   ├── DateTimeUtils.java                # Interval formatting
-│   └── IdGenerator.java                  # Thread-safe sequential IDs
-│
-└── ui/                                   # Presentation layer (Java Swing)
-    ├── component/
-    │   ├── UITheme.java                  # Neutral styling, Inter typography
-    │   ├── CardPanel.java                # Clean container component
-    │   └── StatusBadgeRenderer.java      # Rounded badge table cell renderer
-    ├── controller/
-    │   ├── DashboardController.java
-    │   ├── ResourceController.java
-    │   ├── RequesterController.java
-    │   ├── RequestController.java
-    │   ├── SimulationController.java     # SwingWorker asynchronous runner
-    │   └── ReportController.java
-    └── view/
-        ├── MainFrame.java                # Shell window with sidebar navigation
-        ├── DashboardPanel.java           # Overview screen
-        ├── ResourcesPanel.java           # Asset management screen
-        ├── RequestersPanel.java          # Requester management screen
-        ├── RequestsPanel.java            # Request submission screen
-        ├── SimulationPanel.java          # Strategy simulation & audit screen
-        └── ReportsPanel.java             # Capacity & demand analytics screen
+# Run Automated Verification Suite
+java -cp bin com.campus.VerificationTest
 ```
 
 ---
 
-## 5. Demonstration of OOP & SOLID Principles
+## 3. Key Features & Screens
 
-### 1. Encapsulation
-- All fields in domain models are private and final wherever possible.
-- Identity fields (IDs, creation timestamps) expose no public setters.
-- State modifications occur exclusively through business methods (`markUnderMaintenance()`, `retire()`, `approve()`, `release()`, `waitlist()`).
-- Collections returned from domain objects and repositories are defensively copied (`List.copyOf()`).
+1. **Dashboard (`DashboardPanel`)**:
+   - Executive telemetry metrics: Total Resources, Registered Entities, Total Requests, Allocated Bookings, Waitlist/Conflicts, and Facility Utilization %.
+   - Live table of approved allocations with calculated operating costs and time windows.
 
-### 2. Abstraction
-- Repositories (`ResourceRepository`, `RequesterRepository`, `AllocationRepository`) hide in-memory `ConcurrentHashMap` details behind clean interfaces.
-- Capability interfaces (`Bookable`, `Maintainable`, `CapacityProvider`, `PortableResource`) decouple consumption from concrete types.
-- The UI layer communicates strictly with application controllers, never interacting with storage structures.
+2. **Campus Resource Catalog (`ResourcePanel`)**:
+   - Full inventory of Lecture Halls, Research Labs, Auditoriums, and AV Equipment.
+   - Filter by type and real-time keyword search.
+   - **Toggle Maintenance**: Instantly mark an asset under scheduled maintenance (blocking future bookings).
+   - **Add Resource**: Dialog utilizing `ResourceFactory` to instantiate concrete assets polymorphically.
 
-### 3. Inheritance
-- Meaningful "is-a" hierarchy rooted in `Resource` (with `Classroom`, `Laboratory`, `Projector`, `LaptopSet`, `SportsFacility`, `StudyRoom`).
-- Requester hierarchy rooted in `Requester` (with `Department`, `FacultyMember`, `StudentClub`, `EventOrganizer`).
-- Constructors invoke `super(...)` to enforce consistent validation of universal invariants.
+3. **Requester Directory (`RequesterPanel`)**:
+   - View departments, faculty members, and student clubs with their institutional priority tiers and active allocation loads.
+   - **Register Requester**: Dialog with category-specific attributes (e.g., Department Code, Faculty Academic Rank, Club Advisor).
 
-### 4. Polymorphism
-- Dynamic method dispatch via `Requester.getAllocationPriority()` produces distinct institutional rankings.
-- Policy enforcement via `Requester.canRequestResource(resource)` allows `StudentClub` to automatically forbid booking BSL-2 laboratories without hardcoded type checks in the engine.
-- Allocation strategies (`AllocationStrategy`) are swapped dynamically at runtime without restarting or recompiling.
+4. **Request Queue (`RequestPanel`)**:
+   - Inspect competing facility reservations.
+   - **Submit Request**: Form validating date, start/end hours, seat capacity, urgency, and event purpose.
+   - **Reset Queue to Pending**: Resets requests back to pending status for fresh evaluation.
 
-### 5. Composition over Inheritance
-- `ResourceRequest` composes `Requester`, `TimeSlot`, and `ResourceType`.
-- `Allocation` composes `Resource`, `ResourceRequest`, and `TimeSlot`.
-- `PortableResource` capability is composed onto specific resources (`Projector`, `LaptopSet`) rather than forcing a complex multiple-inheritance hierarchy.
+5. **Simulation Engine & Strategy Lab (`SimulationPanel`)**:
+   - Runtime strategy switcher (`Priority-First`, `Fairness-Aware`, `Capacity-Optimized`).
+   - Detailed algorithm explanation card explaining the mathematics and logic.
+   - **Background Multithreaded Execution**: Runs on a background worker with an animated progress bar to prevent UI freezing.
+   - Comprehensive conflict log detailing exact collision reasons (schedule clash, maintenance block, capacity deficiency, or safety clearance violation).
 
-### 6. SOLID Principles
-- **Single Responsibility Principle (SRP)**: Each class has one clear concern. `TimeSlot` handles time intervals; `AllocationService` coordinates reservations; `ReportingService` computes metrics; UI views handle presentation.
-- **Open/Closed Principle (OCP)**: New allocation strategies, resource types, or requesters can be added without modifying the core allocation engine.
-- **Liskov Substitution Principle (LSP)**: All subclasses honor parent contracts. Any `Resource` subclass can be booked, maintained, or evaluated without violating expected behavior.
-- **Interface Segregation Principle (ISP)**: Capabilities are segregated into small interfaces (`Maintainable`, `CapacityProvider`, `PortableResource`, `Bookable`).
-- **Dependency Inversion Principle (DIP)**: High-level services depend on abstractions (`ResourceRepository`, `AllocationStrategy`), not concrete implementations.
+6. **Audit & Reporting (`ReportPanel`)**:
+   - Summary statistics (operating expenses, allocation success rate).
+   - Monospace formatted audit log preview.
+   - **Export to File**: Writes official audit records to `reports/simulation_audit_report.txt` via Java File I/O.
+
+---
+
+## 4. Project Architecture & Package Structure
+
+```
+campus-resource-simulator/
+â”œâ”€â”€ compile.bat                  # Windows one-click compile script
+â”œâ”€â”€ run.bat                      # Windows one-click run script
+â”œâ”€â”€ test.bat                     # Windows one-click test script
+â”œâ”€â”€ compile.sh                   # Linux/macOS compile script
+â”œâ”€â”€ run.sh                       # Linux/macOS run script
+â”œâ”€â”€ test.sh                      # Linux/macOS test script
+â”œâ”€â”€ resources/
+â”‚   â””â”€â”€ Inter.ttf                # Bundled clean typography
+â”œâ”€â”€ reports/                     # Output directory for exported audit files
+â””â”€â”€ src/
+    â””â”€â”€ com/
+        â””â”€â”€ campus/
+            â”œâ”€â”€ Main.java                        # GUI Desktop Bootstrap Entrypoint
+            â”œâ”€â”€ VerificationTest.java            # Automated 5-part OOP Test Suite
+            â”‚
+            â”œâ”€â”€ model/                           # PURE DOMAIN LAYER
+            â”‚   â”œâ”€â”€ Bookable.java                # Capability interface
+            â”‚   â”œâ”€â”€ ResourceType.java            # Enum: CLASSROOM, LAB, AUDITORIUM, EQUIPMENT
+            â”‚   â”œâ”€â”€ PriorityLevel.java           # Enum: LOW, NORMAL, HIGH, URGENT
+            â”‚   â”œâ”€â”€ RequestStatus.java           # Enum: PENDING, ALLOCATED, WAITLISTED, REJECTED
+            â”‚   â”œâ”€â”€ RequesterType.java           # Enum: DEPARTMENT, FACULTY, STUDENT_CLUB
+            â”‚   â”œâ”€â”€ TimeSlot.java                # Immutable interval value object (encapsulation)
+            â”‚   â”œâ”€â”€ Resource.java                # Abstract base class for physical assets
+            â”‚   â”œâ”€â”€ Classroom.java               # Subclass: Whiteboards, projectors, room no.
+            â”‚   â”œâ”€â”€ Laboratory.java              # Subclass: Lab domain, safety clearance flag
+            â”‚   â”œâ”€â”€ Auditorium.java              # Subclass: Pro-audio, stage dimensions
+            â”‚   â”œâ”€â”€ Equipment.java               # Subclass: Portable projectors, laptop carts
+            â”‚   â”œâ”€â”€ Requester.java               # Abstract base class for campus actors
+            â”‚   â”œâ”€â”€ Department.java              # Subclass: Institutional rank (Base score 60)
+            â”‚   â”œâ”€â”€ FacultyMember.java           # Subclass: Academic rank (Base score 45)
+            â”‚   â”œâ”€â”€ StudentClub.java             # Subclass: Safety restriction (Base score 25)
+            â”‚   â”œâ”€â”€ AllocationRequest.java       # Composition: Requester, TimeSlot, specs
+            â”‚   â”œâ”€â”€ Allocation.java              # Composition: Resource + Request + TimeSlot
+            â”‚   â””â”€â”€ ResourceFactory.java         # Factory Method pattern
+            â”‚
+            â”œâ”€â”€ strategy/                        # STRATEGY PATTERN ALGORITHMS
+            â”‚   â”œâ”€â”€ AllocationStrategy.java      # Strategy interface
+            â”‚   â”œâ”€â”€ PriorityStrategy.java        # Strategy 1: Institutional priority & urgency
+            â”‚   â”œâ”€â”€ FairnessStrategy.java        # Strategy 2: Balances load across requesters
+            â”‚   â””â”€â”€ CapacityStrategy.java        # Strategy 3: Best-Fit seat capacity optimizer
+            â”‚
+            â”œâ”€â”€ service/                         # APPLICATION & DATA SERVICES
+            â”‚   â”œâ”€â”€ CampusDatabase.java          # Singleton in-memory database with seed data
+            â”‚   â”œâ”€â”€ SimulationEngine.java        # Collision detection & policy coordinator
+            â”‚   â”œâ”€â”€ FileReportService.java       # File I/O report generator (PrintWriter)
+            â”‚   â”œâ”€â”€ ResourceUnavailableException.java # Custom domain exception
+            â”‚   â””â”€â”€ InvalidBookingException.java      # Custom domain exception
+            â”‚
+            â””â”€â”€ gui/                             # PRESENTATION LAYER (JAVA SWING)
+                â”œâ”€â”€ UITheme.java                 # Blue & Off-White palette + Inter font
+                â”œâ”€â”€ DashboardPanel.java          # Metric cards and confirmed bookings
+                â”œâ”€â”€ ResourcePanel.java           # Resource catalog & maintenance toggle
+                â”œâ”€â”€ RequesterPanel.java          # Requester directory & priority listing
+                â”œâ”€â”€ RequestPanel.java            # Request submission queue
+                â”œâ”€â”€ SimulationPanel.java         # Strategy selection & execution lab
+                â”œâ”€â”€ ReportPanel.java             # System audit & file export panel
+                â””â”€â”€ MainFrame.java               # Modern shell window with left sidebar
+```
+
+---
+
+## 5. Explicit Demonstration of OOP Principles
+
+Every core Object-Oriented principle is visibly demonstrated in the code and marked with comments:
+
+| OOP Principle | Where It Is Implemented | How It Works |
+|---|---|---|
+| **Encapsulation** | `TimeSlot.java`, `Resource.java`, `AllocationRequest.java` | All fields are `private final` or protected. Setters enforce validation (e.g., `endHour > startHour`, `capacity > 0`). Immutable state where appropriate. |
+| **Abstraction** | `Bookable.java`, `Resource.java`, `Requester.java` | Abstract classes define common interfaces (`isAvailable()`, `book()`, `release()`) and declare abstract methods (`calculateOperatingCostPerHour()`, `canBook()`) without exposing internal mechanics. |
+| **Inheritance** | `Classroom`, `Laboratory`, `Auditorium`, `Equipment` extending `Resource`<br>`Department`, `FacultyMember`, `StudentClub` extending `Requester` | Hierarchical code reuse through `super(...)`. Shared invariants (ID, name, capacity, email) are managed uniformly by the base class. |
+| **Polymorphism** | `Resource.calculateOperatingCostPerHour()`<br>`Requester.canBook(Resource)`<br>`Requester.getBasePriorityScore()` | **Dynamic Method Dispatch**: Each resource calculates energy/operational costs differently (e.g. Lab charges \$75/hr due to chemicals, Classroom \$20/hr). `StudentClub.canBook()` forbids booking hazardous biosafety labs, whereas `Department.canBook()` permits it. |
+| **Composition** | `AllocationRequest.java`, `Allocation.java` | *"Favor Composition Over Inheritance"*: `AllocationRequest` **has-a** `Requester`, **has-a** `TimeSlot`, and **has-a** `PriorityLevel`. `Allocation` binds a `Resource` and `AllocationRequest`. |
+| **Interface Segregation** | `Bookable.java` | Small, focused contract containing only `isAvailable()`, `book()`, and `release()`. |
 
 ---
 
 ## 6. Design Patterns Implemented
 
-1. **Strategy Pattern**: `AllocationStrategy` interface with `PriorityFirstAllocationStrategy`, `FairnessAwareAllocationStrategy`, and `CapacityOptimizedAllocationStrategy`.
-2. **Factory Method / Simple Factory**: `ResourceFactory`, `RequesterFactory`, and `AllocationStrategyFactory`.
-3. **Repository Pattern**: `ResourceRepository`, `RequesterRepository`, `ResourceRequestRepository`, `AllocationRepository` with thread-safe in-memory implementations.
-4. **Observer Pattern**: `DomainEvent`, `DomainEventListener`, and `DomainEventPublisher` notifying UI views of background mutations.
-5. **Builder Pattern**: `ResourceRequestBuilder` and `AllocationResultBuilder` for readable, expressive object construction.
-6. **Singleton Pattern**: Application-level `SimulationContext` and `DomainEventPublisher` providing structured service discovery with constructor injection.
+### 1. Strategy Pattern (`com.campus.strategy`)
+- **Interface**: `AllocationStrategy` defines `prioritizeRequests(...)` and `selectBestResource(...)`.
+- **Concrete Strategies**:
+  - `PriorityStrategy`: Sorts by combined institutional score (Department: 60, Faculty: 45, Club: 25 + urgency weight).
+  - `FairnessStrategy`: Applies a penalty to entities holding prior allocations to prevent starvation of smaller clubs.
+  - `CapacityStrategy`: Selects the "Best-Fit" resource minimizing empty seats.
+- **Engine**: `SimulationEngine` holds a reference to `AllocationStrategy` and can switch strategies dynamically at runtime (`engine.setStrategy(...)`).
+
+### 2. Factory Method Pattern (`ResourceFactory.java`)
+- Centralizes creation of polymorphic `Resource` subclasses (`Classroom`, `Laboratory`, `Auditorium`, `Equipment`).
+- Client UI code never directly calls concrete constructors, ensuring loose coupling.
+
+### 3. Singleton Pattern (`CampusDatabase.java`)
+- `getInstance()` guarantees exactly one central in-memory repository instance.
+- Pre-loaded with realistic university seed data (11 resources, 7 requesters, 8 requests with intentional conflicts).
 
 ---
 
-## 7. Allocation Engine Strategies
+## 7. Core Java Concepts Demonstrated
 
-| Strategy | Selection Algorithm | Best Used For |
-|---|---|---|
-| **Priority-First** | Evaluates requests sorted by effective priority (institutional rank + request urgency) with chronological tie-breaker (FIFO). | Academic peak scheduling, exam halls, critical accreditation events. |
-| **Fairness-Aware** | Calculates a dynamic fairness score that progressively penalizes requesters holding prior allocations: `score = priority / (1 + (activeAllocations * weight))`. | Broad campus equity, student activity spaces, balancing multi-club access. |
-| **Capacity-Optimized** | Evaluates viable candidate resources and selects the best-fit unit minimizing `(capacity - requiredCapacity) >= 0`. | Preventing resource squandering (e.g., preserving large halls for large cohorts). |
+1. **Java Collections Framework**: `List<Resource>`, `ArrayList`, `Collections.unmodifiableList(...)` preventing unauthorized list modification.
+2. **Streams & Lambdas**: Used extensively for filtering candidate resources, computing totals, checking schedule overlaps, and sorting.
+3. **Custom Exceptions**: `ResourceUnavailableException` and `InvalidBookingException` extending `RuntimeException` for clean error signaling.
+4. **Multithreading & Concurrency**: Simulation execution runs in a background thread via `SwingWorker` with animated progress feedback, keeping the Swing UI 100% responsive without freezing.
+5. **File Input/Output (I/O)**: `FileReportService` exports audit logs to disk using `FileWriter`, `PrintWriter`, and **try-with-resources** to prevent file descriptor leaks.
+6. **Value Objects**: `TimeSlot` overrides `equals()`, `hashCode()`, and `toString()` with interval arithmetic (`overlaps(...)`).
 
 ---
 
-## 8. Testing & Verification
+## 8. Automated Verification Test Suite
 
-A comprehensive JUnit 5 test suite with **27 automated tests** covers:
-- Value object boundaries (`TimeSlotTest`: interval overlaps, abutting boundaries, negative durations).
-- Resource model polymorphism & capability lifecycle (`ResourceModelTest`).
-- Requester priority hierarchy and safety clearance rules (`RequesterModelTest`).
-- State machine transition guards (`ResourceRequestTest`).
-- In-memory repository concurrency & interval queries (`RepositoryTest`).
-- Collision detection, double-booking prevention, and maintenance blocks (`AllocationConflictDetectionTest`).
-- Proving distinct allocation decisions across different strategies (`AllocationStrategyTest`).
-- End-to-end service orchestration, reporting, and event dispatch (`AllocationServiceWorkflowTest`).
+A standalone test suite (`VerificationTest.java`) is included to verify all functionality without needing external dependencies:
 
-Run all tests via:
-```bash
-mvn test
-# or
-.\mvnw.cmd test
+```cmd
+test.bat
+```
+
+### Test Suite Execution Output:
+```
+================================================================================
+       CAMPUS RESOURCE ALLOCATION SIMULATOR - AUTOMATED TEST SUITE
+================================================================================
+[TEST 1/5] Verifying Singleton Database & Seed Inventory... PASSED! (11 resources, 7 requesters, 8 requests loaded)
+[TEST 2/5] Verifying OOP Polymorphism (Operating Costs & Policy Clearance)... PASSED! (Polymorphic cost & policy clearance functioning)
+[TEST 3/5] Verifying Priority-First Strategy Execution & Collision Detection... PASSED! (Allocated: 4, Waitlisted: 3, Rejected: 1)
+[TEST 4/5] Verifying Strategy Pattern Runtime Switching (Fairness & Capacity)... PASSED! (All strategies executed cleanly)
+[TEST 5/5] Verifying File I/O Audit Report Generation... PASSED! (File generated at: reports\test_verification_report.txt, size: 2623 bytes)
+================================================================================
+SUMMARY: 5 / 5 TESTS PASSED SUCCESSFULLY (100% GREEN)
+================================================================================
 ```
 
 ---
 
-## 9. Future Extensions
+## 9. Viva / Oral Examination Questions & Answers
 
-- **Database Persistence**: Drop-in PostgreSQL / SQLite JDBC repository implementations without modifying any domain model or service class.
-- **Calendar Visualization**: Week-grid visual schedule view showing room allocations across time blocks.
-- **Recurring Bookings**: Support for weekly recurring semester schedules.
-- **Export Capabilities**: Export allocation audit reports and conflict diagnostics to CSV or PDF format.
+**Q1: How is Polymorphism demonstrated in this project?**
+> *Answer:* Through dynamic method dispatch. For instance, `Resource.calculateOperatingCostPerHour()` is overridden by `Classroom`, `Laboratory`, `Auditorium`, and `Equipment` to compute distinct operating costs. Also, `Requester.canBook(Resource)` allows `StudentClub` to reject bookings for hazardous laboratories, while `Department` permits it.
+
+**Q2: What is the benefit of the Strategy Pattern here?**
+> *Answer:* It encapsulates different allocation algorithms (`PriorityStrategy`, `FairnessStrategy`, `CapacityStrategy`) behind the `AllocationStrategy` interface. The `SimulationEngine` depends only on the abstraction, allowing new algorithms to be added without modifying the engine (Open/Closed Principle).
+
+**Q3: How do you prevent UI freezing when running simulations?**
+> *Answer:* We use Java's `SwingWorker` to execute `SimulationEngine.runSimulation()` on a background worker thread while updating the `JProgressBar` on the Event Dispatch Thread (EDT).
+
+**Q4: How does the application detect schedule collisions?**
+> *Answer:* The `TimeSlot` value object implements interval arithmetic: two slots on the same date overlap if `(start1 < end2) && (start2 < end1)`. Before confirming any booking, the engine checks all active allocations for the same physical asset.
+
+---
+*Created for academic demonstration and object-oriented software engineering evaluation.*

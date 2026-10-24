@@ -4,79 +4,109 @@ This document defines architectural standards, development guidelines, and opera
 
 ---
 
-## 1. Environment & Tooling Prerequisites
+## 1. Project Philosophy & Build Constraints
 
-- **Java Version**: Java 17 or later (LTS 17, 21, or modern Java 26 supported). Use standard Java APIs; do not introduce external framework annotations (no Spring, Lombok, Hibernate, or third-party DI).
-- **Build System**: Apache Maven 3.8+. A Maven Wrapper (`mvnw` and `mvnw.cmd`) is included in the project root.
-- **Testing Framework**: JUnit 5 (Jupiter API & Engine).
-- **GUI Framework**: Java Swing (`javax.swing.*`, `java.awt.*`).
+- **Zero Heavy Build Frameworks**: **No Maven, No Gradle, No Spring, No Lombok, No Hibernate**. The project is strictly designed as a lightweight, clean, standard Java desktop application for college project evaluation.
+- **Java Version**: Java 17 or later (LTS 17, 21, or 26 supported). Use standard Java SE libraries (`java.base`, `java.desktop`).
+- **Compilation**: Use standard `javac` targeting the `bin` directory.
+- **Execution**: Use standard `java -cp bin com.campus.Main`.
+- **Testing**: Standalone test suite in `com.campus.VerificationTest`.
+- **GUI Framework**: Pure Java Swing (`javax.swing.*`, `java.awt.*`).
 
 ---
 
 ## 2. Standard Build & Test Commands
 
-Always verify changes by executing tests and packaging the application before completing tasks:
+Agents should verify changes using the standard scripts or command-line commands:
 
+### Windows
 ```powershell
-# Run the entire test suite
-.\mvnw.cmd test
+# Compile the application
+.\compile.bat
 
-# Compile and package the standalone executable JAR
-.\mvnw.cmd clean package
+# Run the automated OOP test suite
+.\test.bat
 
-# Test-run the executable JAR in headless verification mode
-java "-Djava.awt.headless=true" -jar target/campus-resource-simulator.jar
+# Launch the desktop UI application
+.\run.bat
+```
 
-# Run the desktop UI application
-java -jar target/campus-resource-simulator.jar
+### Direct Terminal Commands (Cross-Platform)
+```bash
+# Compile all source files
+javac -encoding UTF-8 -d bin -sourcepath src src/com/campus/Main.java src/com/campus/VerificationTest.java
+
+# Run test suite
+java -cp bin com.campus.VerificationTest
+
+# Launch desktop GUI
+java -cp bin com.campus.Main
 ```
 
 ---
 
-## 3. Package Structure & Architectural Boundaries
+## 3. Package Structure & Boundaries
 
 ```
-com.campus.simulator
-├── App.java                              # Bootstrap entrypoint (must remain lean)
-├── SimulationContext.java                # Dependency Injection and singleton assembly
-├── model/                                # Pure domain entities (NO Swing imports)
-│   ├── schedule/                         # TimeSlot and time intervals
-│   ├── resource/                         # Resource hierarchy and capability interfaces
-│   ├── requester/                        # Requester hierarchy and priority rules
-│   └── allocation/                       # ResourceRequest, Allocation, AllocationResult
-├── service/                              # Application services and use cases
-│   └── allocation/                       # Strategy pattern engine and implementations
-├── repository/                           # Data access interfaces and in-memory stores
-├── observer/                             # DomainEvent publisher and subscriber mechanism
-├── exception/                            # Domain-specific unchecked runtime exceptions
-├── util/                                 # General defensive guards and formatting
-└── ui/                                   # Presentation layer (Java Swing only)
-    ├── component/                        # Reusable widgets (UITheme, CardPanel, StatusBadgeRenderer)
-    ├── controller/                       # Presentation controllers mediating between UI and services
-    └── view/                             # Panels and MainFrame layout
+src/com/campus/
+├── Main.java                        # GUI Desktop Bootstrap Entrypoint
+├── VerificationTest.java            # Standalone 5-Suite Automated Tester
+│
+├── model/                           # Pure domain entities (NO Swing imports!)
+│   ├── Bookable.java                # Capability interface
+│   ├── Resource.java                # Abstract base class
+│   ├── Classroom.java               # Concrete resource subclass
+│   ├── Laboratory.java              # Concrete resource subclass
+│   ├── Auditorium.java              # Concrete resource subclass
+│   ├── Equipment.java               # Concrete resource subclass
+│   ├── Requester.java               # Abstract base class
+│   ├── Department.java              # Concrete requester subclass
+│   ├── FacultyMember.java           # Concrete requester subclass
+│   ├── StudentClub.java             # Concrete requester subclass
+│   ├── TimeSlot.java                # Immutable interval value object
+│   ├── AllocationRequest.java       # Request lifecycle entity
+│   ├── Allocation.java              # Reservation binding entity
+│   ├── ResourceFactory.java         # Factory Method pattern
+│   └── (Enums: ResourceType, RequesterType, PriorityLevel, RequestStatus)
+│
+├── strategy/                        # Strategy Pattern implementations
+│   ├── AllocationStrategy.java      # Strategy interface
+│   ├── PriorityStrategy.java        # Institutional priority algorithm
+│   ├── FairnessStrategy.java        # Anti-starvation fairness algorithm
+│   └── CapacityStrategy.java        # Best-Fit space optimizer
+│
+├── service/                         # Application use cases & in-memory database
+│   ├── CampusDatabase.java          # Singleton in-memory store with demo seed data
+│   ├── SimulationEngine.java        # Core collision detection & policy orchestrator
+│   ├── FileReportService.java       # Java File I/O audit exporter
+│   ├── ResourceUnavailableException.java
+│   └── InvalidBookingException.java
+│
+└── gui/                             # Presentation layer (Java Swing only)
+    ├── UITheme.java                 # Blue & Off-White styling, Inter typography
+    ├── DashboardPanel.java          # Overview metrics & confirmed bookings
+    ├── ResourcePanel.java           # Asset catalog & maintenance toggle
+    ├── RequesterPanel.java          # Requester directory & priority listing
+    ├── RequestPanel.java            # Request submission queue
+    ├── SimulationPanel.java         # Strategy selection & execution lab
+    ├── ReportPanel.java             # System audit & file export panel
+    └── MainFrame.java               # Frame layout with left sidebar
 ```
-
-### Architectural Guardrails
-1. **Model Independence**: Classes in `com.campus.simulator.model` and its subpackages **must NEVER import any Swing or AWT classes** (except pure date/time or value abstractions).
-2. **Layered Separation**: The UI must never directly query or mutate repositories. All UI actions must route through controllers and services.
-3. **Threading & EDT**: Simulation execution and heavy computations must not run on the Swing Event Dispatch Thread (EDT). Use `SwingWorker` or asynchronous executors, updating UI components via `SwingUtilities.invokeLater`.
-4. **Dependency Inversion**: Services must depend on interfaces (`ResourceRepository`, `AllocationStrategy`), not concrete in-memory or Swing classes.
 
 ---
 
-## 4. Naming Conventions & Code Style
+## 4. Architectural Guardrails for Agents
 
-- **Classes**: PascalCase (`AllocationService`, `PriorityFirstAllocationStrategy`, `TimeSlot`).
-- **Interfaces**: PascalCase, named as capabilities or repository abstractions (`Bookable`, `Maintainable`, `ResourceRepository`).
-- **Methods**: camelCase, intention-revealing business terms (`markUnderMaintenance()`, `calculateEffectivePriority()`, `isActiveDuring()`). Avoid generic getter/setter mutations for domain transitions.
-- **Constants & Enums**: UPPER_SNAKE_CASE (`AVAILABLE`, `PRIORITY_FIRST`, `CRITICAL`).
-- **Typography & UI**: The application standardizes on the bundled **Inter** font with tight spacing and clean, neutral, subtle styling. Do not introduce bright neon palettes or heavy third-party UI dependencies.
+1. **Model Independence**: Classes in `com.campus.model` **must NEVER import any Swing or AWT classes**. Pure Java domain models only.
+2. **Layered Separation**: The GUI panels must never contain allocation business rules or collision algorithms. All scheduling and collision logic resides in `SimulationEngine`.
+3. **No External Libraries**: Do not add external `.jar` files or Maven `pom.xml` files unless explicitly requested by the user.
+4. **Visual Aesthetics**: Adhere to the subtle Blue & Off-White color palette (`#F8FAFC`, `#FFFFFF`, `#2563EB`, `#1E3A8A`) and tightly spaced Inter font provided in `UITheme.java`.
 
 ---
 
 ## 5. Protected Files & Folders
 
-Do not modify or delete the following without explicit user instructions:
-- `src/main/resources/fonts/Inter.ttf`: The official bundled Inter TrueType font.
-- `.mvn/wrapper/`: Maven wrapper binary and property configurations.
-- `pom.xml`: Plugin configurations for `maven-compiler-plugin`, `maven-surefire-plugin`, and `maven-shade-plugin` ensuring standalone JAR generation.
+Do not delete or overwrite without explicit reason:
+- `resources/Inter.ttf`: The bundled Inter font.
+- `compile.bat`, `run.bat`, `test.bat`: Windows helper scripts.
+- `compile.sh`, `run.sh`, `test.sh`: Linux/macOS helper scripts.
