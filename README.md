@@ -113,17 +113,6 @@ flowchart TB
     STRAT --> DOM
 ```
 
-### Layer responsibilities
-
-| Layer | Package | Responsibility |
-|---|---|---|
-| **Presentation** | `com.campus.gui` | Swing panels, navigation, theming. Contains no business rules. Long-running work goes through `SwingWorker`. |
-| **Service** | `com.campus.service` | `CampusDatabase` holds all state; `SimulationEngine` applies rules and delegates decisions to a strategy; `FileReportService` writes audit files. |
-| **Strategy** | `com.campus.strategy` | Interchangeable algorithms that decide request order and resource choice. |
-| **Domain** | `com.campus.model` | Entities, enums and value objects. Pure Java, no UI or I/O. |
-
----
-
 ## 4. How an Allocation Works
 
 ### Request lifecycle
@@ -198,65 +187,7 @@ All strategies implement `AllocationStrategy` (`prioritizeRequests`, `selectBest
 
 ---
 
-## 6. Domain Model
-
-```mermaid
-classDiagram
-    class Bookable {
-        <<interface>>
-        +isAvailable() boolean
-        +book() boolean
-        +release()
-    }
-    class Resource {
-        <<abstract>>
-        +calculateOperatingCostPerHour()*
-        +canAccommodate(int) boolean
-        +isUnderMaintenance() boolean
-    }
-    class Requester {
-        <<abstract>>
-        +getBasePriorityScore()*
-        +canBook(Resource)* boolean
-        +calculateEffectiveScore() int
-    }
-    class AllocationRequest
-    class Allocation
-    class TimeSlot {
-        +overlaps(TimeSlot) boolean
-    }
-
-    Bookable <|.. Resource
-    Resource <|-- Classroom
-    Resource <|-- Laboratory
-    Resource <|-- Auditorium
-    Resource <|-- Equipment
-    Requester <|-- Department
-    Requester <|-- FacultyMember
-    Requester <|-- StudentClub
-    AllocationRequest --> Requester
-    AllocationRequest --> TimeSlot
-    Allocation --> Resource
-    Allocation --> AllocationRequest
-```
-
-**Enums:** `ResourceType`, `RequesterType`, `PriorityLevel` (LOW → URGENT), `RequestStatus` (PENDING, ALLOCATED, WAITLISTED, REJECTED, CANCELLED).
-
-**Collision check:** two slots on the same date overlap when `start₁ < end₂ && start₂ < end₁`.
-
----
-
-## 7. Design Patterns & OOP Concepts
-
-### Patterns
-
-| Pattern | Where | Purpose |
-|---|---|---|
-| **Strategy** | `AllocationStrategy` + 3 implementations | Swap algorithms at runtime without touching the engine (Open/Closed) |
-| **Factory Method** | `ResourceFactory` | UI creates resources without calling concrete constructors |
-| **Singleton** | `CampusDatabase` | One shared in-memory repository |
-
-### OOP principles
+## 6. OOP principles
 
 | Principle | Example |
 |---|---|
@@ -289,34 +220,6 @@ slotwise/
     ├── service/                 # CampusDatabase, SimulationEngine, FileReportService, exceptions
     └── gui/                     # MainFrame, UITheme, and the six panels
 ```
-
----
-
-## 9. Testing
-
-`VerificationTest` is a dependency-free suite with five checks:
-
-1. Singleton database and seed data (11 resources, 7 requesters, 8 requests)
-2. Polymorphic operating costs and policy clearance
-3. Priority strategy and collision detection
-4. Runtime strategy switching
-5. File I/O audit report generation
-
-```
-SUMMARY: 5 / 5 TESTS PASSED SUCCESSFULLY
-```
-
----
-
-## 10. Design Decisions
-
-- **Plain `javac`, no build tool.** Builds never fail on machines with proxy issues or no internet; the scripts make setup one click.
-- **Domain has no Swing imports.** A console or web front end could be added without touching business logic.
-- **Strategies as classes.** Algorithms are easy to read, compare, and extend independently.
-- **Simulation off the EDT.** `SwingWorker` keeps the UI responsive during runs.
-
----
-
 ## 11. Future Work
 
 - Persistent storage (file or SQLite) instead of in-memory seed data
@@ -327,4 +230,4 @@ SUMMARY: 5 / 5 TESTS PASSED SUCCESSFULLY
 
 ---
 
-*Built as an object-oriented software engineering project.*
+*Built as an object-oriented software engineering project for OOP CWS.*
