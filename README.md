@@ -1,266 +1,332 @@
-﻿# Campus Resource Allocation Simulator
+# 🎓 SlotWise
 
-> **A Pure Java Desktop Project for College Evaluation & Viva Demonstration**
-> Designed with crystal-clear **Object-Oriented Programming (OOP)** principles, modern software design patterns, and a clean, subtle **Java Swing** user interface in a blue & off-white aesthetic with tight-spaced Inter typography.
-> **Zero build frameworks required** â€” no Maven, no Gradle, no external dependencies. Compiles and runs out-of-the-box with standard Java 17+.
+### Smart Campus Resource Allocation Simulator
 
----
+> Fair, conflict-free booking of classrooms, labs, auditoriums and equipment — with swappable allocation strategies you can compare live.
 
-## ðŸ“‘ Table of Contents
-1. [Project Overview](#1-project-overview)
-2. [Quick Start (Build & Run)](#2-quick-start-build--run)
-3. [Key Features & Screens](#3-key-features--screens)
-4. [Project Architecture & Package Structure](#4-project-architecture--package-structure)
-5. [Explicit Demonstration of OOP Principles](#5-explicit-demonstration-of-oop-principles)
-6. [Design Patterns Implemented](#6-design-patterns-implemented)
-7. [Core Java Concepts Demonstrated](#7-core-java-concepts-demonstrated)
-8. [Automated Verification Test Suite](#8-automated-verification-test-suite)
-9. [Viva / Oral Examination Questions & Answers](#9-viva--oral-examination-questions--answers)
+**SlotWise** is a pure-Java desktop application that simulates how a university decides who gets which room, when. Departments, faculty and student clubs compete for limited facilities; SlotWise detects clashes, enforces safety policy, and lets an administrator switch between allocation algorithms at runtime to see how each one changes fairness and utilization.
+
+No Maven. No Gradle. No external libraries. Just `javac`.
 
 ---
 
-## 1. Project Overview
+## Table of Contents
 
-On any university campus, limited facilitiesâ€”lecture halls, advanced research laboratories, auditoriums, and portable audiovisual equipmentâ€”face intense competition from academic departments, tenured and junior faculty, student clubs, and event organizers.
-
-The **Campus Resource Allocation Simulator** models this real-world operational challenge:
-- Detects **double-booking** and **schedule collisions** across overlapping time slots.
-- Enforces **institutional safety policies** (e.g., student clubs are barred from booking hazardous biosafety laboratories without faculty oversight).
-- Allows campus administrators to switch between **three algorithmic allocation strategies** at runtime to see how different rules affect fairness and facility utilization.
-- Generates and exports official **audit reports** to text files for administrative record-keeping.
-
----
-
-## 2. Quick Start (Build & Run)
-
-### System Requirements
-- **Java Development Kit (JDK) 17 or higher** (tested on Java 17, 21, and 26).
-- Standard terminal / command prompt.
-
-### Windows (One-Click Scripts)
-```cmd
-# 1. Compile the application
-compile.bat
-
-# 2. Launch the desktop GUI
-run.bat
-
-# 3. Run the automated OOP test suite
-test.bat
-```
-
-### Linux / macOS
-```bash
-# Make scripts executable
-chmod +x compile.sh run.sh test.sh
-
-# 1. Compile
-./compile.sh
-
-# 2. Launch GUI
-./run.sh
-
-# 3. Run test suite
-./test.sh
-```
-
-### Manual Command-Line (Cross-Platform)
-```bash
-# Compile to 'bin' directory
-javac -encoding UTF-8 -d bin -sourcepath src src/com/campus/Main.java src/com/campus/VerificationTest.java
-
-# Run Desktop Application
-java -cp bin com.campus.Main
-
-# Run Automated Verification Suite
-java -cp bin com.campus.VerificationTest
-```
+1. [Features](#1-features)
+2. [Quick Start](#2-quick-start)
+3. [Architecture](#3-architecture)
+4. [How an Allocation Works](#4-how-an-allocation-works)
+5. [Allocation Strategies](#5-allocation-strategies)
+6. [Domain Model](#6-domain-model)
+7. [Design Patterns & OOP Concepts](#7-design-patterns--oop-concepts)
+8. [Project Structure](#8-project-structure)
+9. [Testing](#9-testing)
+10. [Design Decisions](#10-design-decisions)
+11. [Future Work](#11-future-work)
 
 ---
 
-## 3. Key Features & Screens
+## 1. Features
 
-1. **Dashboard (`DashboardPanel`)**:
-   - Executive telemetry metrics: Total Resources, Registered Entities, Total Requests, Allocated Bookings, Waitlist/Conflicts, and Facility Utilization %.
-   - Live table of approved allocations with calculated operating costs and time windows.
+| Screen | What it does |
+|---|---|
+| **Dashboard** | Live metrics: total resources, requesters, requests, allocations, waitlist size, utilization %. Table of confirmed bookings. |
+| **Resource Catalog** | Browse/filter/search classrooms, labs, auditoriums, equipment. Toggle maintenance mode. Add resources via a factory. |
+| **Requester Directory** | Departments, faculty and student clubs with priority tiers and current load. Register new requesters. |
+| **Request Queue** | Submit reservation requests (date, hours, capacity, urgency, purpose). Reset the queue to re-run scenarios. |
+| **Simulation Lab** | Pick a strategy, run the engine on a background thread, and read a per-request log explaining every outcome. |
+| **Audit & Reports** | Summary stats and an exportable text audit (`reports/simulation_audit_report.txt`). |
 
-2. **Campus Resource Catalog (`ResourcePanel`)**:
-   - Full inventory of Lecture Halls, Research Labs, Auditoriums, and AV Equipment.
-   - Filter by type and real-time keyword search.
-   - **Toggle Maintenance**: Instantly mark an asset under scheduled maintenance (blocking future bookings).
-   - **Add Resource**: Dialog utilizing `ResourceFactory` to instantiate concrete assets polymorphically.
-
-3. **Requester Directory (`RequesterPanel`)**:
-   - View departments, faculty members, and student clubs with their institutional priority tiers and active allocation loads.
-   - **Register Requester**: Dialog with category-specific attributes (e.g., Department Code, Faculty Academic Rank, Club Advisor).
-
-4. **Request Queue (`RequestPanel`)**:
-   - Inspect competing facility reservations.
-   - **Submit Request**: Form validating date, start/end hours, seat capacity, urgency, and event purpose.
-   - **Reset Queue to Pending**: Resets requests back to pending status for fresh evaluation.
-
-5. **Simulation Engine & Strategy Lab (`SimulationPanel`)**:
-   - Runtime strategy switcher (`Priority-First`, `Fairness-Aware`, `Capacity-Optimized`).
-   - Detailed algorithm explanation card explaining the mathematics and logic.
-   - **Background Multithreaded Execution**: Runs on a background worker with an animated progress bar to prevent UI freezing.
-   - Comprehensive conflict log detailing exact collision reasons (schedule clash, maintenance block, capacity deficiency, or safety clearance violation).
-
-6. **Audit & Reporting (`ReportPanel`)**:
-   - Summary statistics (operating expenses, allocation success rate).
-   - Monospace formatted audit log preview.
-   - **Export to File**: Writes official audit records to `reports/simulation_audit_report.txt` via Java File I/O.
+**Rules enforced by the engine**
+- No double-booking of a resource in overlapping time slots
+- No requester holding two bookings in the same slot
+- Maintenance blocks and seat-capacity checks
+- Safety policy (e.g. student clubs cannot book hazardous labs)
 
 ---
 
-## 4. Project Architecture & Package Structure
+## 2. Quick Start
 
-```
-campus-resource-simulator/
-â”œâ”€â”€ compile.bat                  # Windows one-click compile script
-â”œâ”€â”€ run.bat                      # Windows one-click run script
-â”œâ”€â”€ test.bat                     # Windows one-click test script
-â”œâ”€â”€ compile.sh                   # Linux/macOS compile script
-â”œâ”€â”€ run.sh                       # Linux/macOS run script
-â”œâ”€â”€ test.sh                      # Linux/macOS test script
-â”œâ”€â”€ resources/
-â”‚   â””â”€â”€ Inter.ttf                # Bundled clean typography
-â”œâ”€â”€ reports/                     # Output directory for exported audit files
-â””â”€â”€ src/
-    â””â”€â”€ com/
-        â””â”€â”€ campus/
-            â”œâ”€â”€ Main.java                        # GUI Desktop Bootstrap Entrypoint
-            â”œâ”€â”€ VerificationTest.java            # Automated 5-part OOP Test Suite
-            â”‚
-            â”œâ”€â”€ model/                           # PURE DOMAIN LAYER
-            â”‚   â”œâ”€â”€ Bookable.java                # Capability interface
-            â”‚   â”œâ”€â”€ ResourceType.java            # Enum: CLASSROOM, LAB, AUDITORIUM, EQUIPMENT
-            â”‚   â”œâ”€â”€ PriorityLevel.java           # Enum: LOW, NORMAL, HIGH, URGENT
-            â”‚   â”œâ”€â”€ RequestStatus.java           # Enum: PENDING, ALLOCATED, WAITLISTED, REJECTED
-            â”‚   â”œâ”€â”€ RequesterType.java           # Enum: DEPARTMENT, FACULTY, STUDENT_CLUB
-            â”‚   â”œâ”€â”€ TimeSlot.java                # Immutable interval value object (encapsulation)
-            â”‚   â”œâ”€â”€ Resource.java                # Abstract base class for physical assets
-            â”‚   â”œâ”€â”€ Classroom.java               # Subclass: Whiteboards, projectors, room no.
-            â”‚   â”œâ”€â”€ Laboratory.java              # Subclass: Lab domain, safety clearance flag
-            â”‚   â”œâ”€â”€ Auditorium.java              # Subclass: Pro-audio, stage dimensions
-            â”‚   â”œâ”€â”€ Equipment.java               # Subclass: Portable projectors, laptop carts
-            â”‚   â”œâ”€â”€ Requester.java               # Abstract base class for campus actors
-            â”‚   â”œâ”€â”€ Department.java              # Subclass: Institutional rank (Base score 60)
-            â”‚   â”œâ”€â”€ FacultyMember.java           # Subclass: Academic rank (Base score 45)
-            â”‚   â”œâ”€â”€ StudentClub.java             # Subclass: Safety restriction (Base score 25)
-            â”‚   â”œâ”€â”€ AllocationRequest.java       # Composition: Requester, TimeSlot, specs
-            â”‚   â”œâ”€â”€ Allocation.java              # Composition: Resource + Request + TimeSlot
-            â”‚   â””â”€â”€ ResourceFactory.java         # Factory Method pattern
-            â”‚
-            â”œâ”€â”€ strategy/                        # STRATEGY PATTERN ALGORITHMS
-            â”‚   â”œâ”€â”€ AllocationStrategy.java      # Strategy interface
-            â”‚   â”œâ”€â”€ PriorityStrategy.java        # Strategy 1: Institutional priority & urgency
-            â”‚   â”œâ”€â”€ FairnessStrategy.java        # Strategy 2: Balances load across requesters
-            â”‚   â””â”€â”€ CapacityStrategy.java        # Strategy 3: Best-Fit seat capacity optimizer
-            â”‚
-            â”œâ”€â”€ service/                         # APPLICATION & DATA SERVICES
-            â”‚   â”œâ”€â”€ CampusDatabase.java          # Singleton in-memory database with seed data
-            â”‚   â”œâ”€â”€ SimulationEngine.java        # Collision detection & policy coordinator
-            â”‚   â”œâ”€â”€ FileReportService.java       # File I/O report generator (PrintWriter)
-            â”‚   â”œâ”€â”€ ResourceUnavailableException.java # Custom domain exception
-            â”‚   â””â”€â”€ InvalidBookingException.java      # Custom domain exception
-            â”‚
-            â””â”€â”€ gui/                             # PRESENTATION LAYER (JAVA SWING)
-                â”œâ”€â”€ UITheme.java                 # Blue & Off-White palette + Inter font
-                â”œâ”€â”€ DashboardPanel.java          # Metric cards and confirmed bookings
-                â”œâ”€â”€ ResourcePanel.java           # Resource catalog & maintenance toggle
-                â”œâ”€â”€ RequesterPanel.java          # Requester directory & priority listing
-                â”œâ”€â”€ RequestPanel.java            # Request submission queue
-                â”œâ”€â”€ SimulationPanel.java         # Strategy selection & execution lab
-                â”œâ”€â”€ ReportPanel.java             # System audit & file export panel
-                â””â”€â”€ MainFrame.java               # Modern shell window with left sidebar
-```
+**Requirements:** JDK 17 or newer.
 
----
-
-## 5. Explicit Demonstration of OOP Principles
-
-Every core Object-Oriented principle is visibly demonstrated in the code and marked with comments:
-
-| OOP Principle | Where It Is Implemented | How It Works |
+| | Windows | Linux / macOS |
 |---|---|---|
-| **Encapsulation** | `TimeSlot.java`, `Resource.java`, `AllocationRequest.java` | All fields are `private final` or protected. Setters enforce validation (e.g., `endHour > startHour`, `capacity > 0`). Immutable state where appropriate. |
-| **Abstraction** | `Bookable.java`, `Resource.java`, `Requester.java` | Abstract classes define common interfaces (`isAvailable()`, `book()`, `release()`) and declare abstract methods (`calculateOperatingCostPerHour()`, `canBook()`) without exposing internal mechanics. |
-| **Inheritance** | `Classroom`, `Laboratory`, `Auditorium`, `Equipment` extending `Resource`<br>`Department`, `FacultyMember`, `StudentClub` extending `Requester` | Hierarchical code reuse through `super(...)`. Shared invariants (ID, name, capacity, email) are managed uniformly by the base class. |
-| **Polymorphism** | `Resource.calculateOperatingCostPerHour()`<br>`Requester.canBook(Resource)`<br>`Requester.getBasePriorityScore()` | **Dynamic Method Dispatch**: Each resource calculates energy/operational costs differently (e.g. Lab charges \$75/hr due to chemicals, Classroom \$20/hr). `StudentClub.canBook()` forbids booking hazardous biosafety labs, whereas `Department.canBook()` permits it. |
-| **Composition** | `AllocationRequest.java`, `Allocation.java` | *"Favor Composition Over Inheritance"*: `AllocationRequest` **has-a** `Requester`, **has-a** `TimeSlot`, and **has-a** `PriorityLevel`. `Allocation` binds a `Resource` and `AllocationRequest`. |
-| **Interface Segregation** | `Bookable.java` | Small, focused contract containing only `isAvailable()`, `book()`, and `release()`. |
+| Compile | `compile.bat` | `./compile.sh` |
+| Run the GUI | `run.bat` | `./run.sh` |
+| Run tests | `test.bat` | `./test.sh` |
 
----
+On Linux/macOS, run `chmod +x *.sh` once first.
 
-## 6. Design Patterns Implemented
+**Manual build (any OS):**
 
-### 1. Strategy Pattern (`com.campus.strategy`)
-- **Interface**: `AllocationStrategy` defines `prioritizeRequests(...)` and `selectBestResource(...)`.
-- **Concrete Strategies**:
-  - `PriorityStrategy`: Sorts by combined institutional score (Department: 60, Faculty: 45, Club: 25 + urgency weight).
-  - `FairnessStrategy`: Applies a penalty to entities holding prior allocations to prevent starvation of smaller clubs.
-  - `CapacityStrategy`: Selects the "Best-Fit" resource minimizing empty seats.
-- **Engine**: `SimulationEngine` holds a reference to `AllocationStrategy` and can switch strategies dynamically at runtime (`engine.setStrategy(...)`).
-
-### 2. Factory Method Pattern (`ResourceFactory.java`)
-- Centralizes creation of polymorphic `Resource` subclasses (`Classroom`, `Laboratory`, `Auditorium`, `Equipment`).
-- Client UI code never directly calls concrete constructors, ensuring loose coupling.
-
-### 3. Singleton Pattern (`CampusDatabase.java`)
-- `getInstance()` guarantees exactly one central in-memory repository instance.
-- Pre-loaded with realistic university seed data (11 resources, 7 requesters, 8 requests with intentional conflicts).
-
----
-
-## 7. Core Java Concepts Demonstrated
-
-1. **Java Collections Framework**: `List<Resource>`, `ArrayList`, `Collections.unmodifiableList(...)` preventing unauthorized list modification.
-2. **Streams & Lambdas**: Used extensively for filtering candidate resources, computing totals, checking schedule overlaps, and sorting.
-3. **Custom Exceptions**: `ResourceUnavailableException` and `InvalidBookingException` extending `RuntimeException` for clean error signaling.
-4. **Multithreading & Concurrency**: Simulation execution runs in a background thread via `SwingWorker` with animated progress feedback, keeping the Swing UI 100% responsive without freezing.
-5. **File Input/Output (I/O)**: `FileReportService` exports audit logs to disk using `FileWriter`, `PrintWriter`, and **try-with-resources** to prevent file descriptor leaks.
-6. **Value Objects**: `TimeSlot` overrides `equals()`, `hashCode()`, and `toString()` with interval arithmetic (`overlaps(...)`).
-
----
-
-## 8. Automated Verification Test Suite
-
-A standalone test suite (`VerificationTest.java`) is included to verify all functionality without needing external dependencies:
-
-```cmd
-test.bat
-```
-
-### Test Suite Execution Output:
-```
-================================================================================
-       CAMPUS RESOURCE ALLOCATION SIMULATOR - AUTOMATED TEST SUITE
-================================================================================
-[TEST 1/5] Verifying Singleton Database & Seed Inventory... PASSED! (11 resources, 7 requesters, 8 requests loaded)
-[TEST 2/5] Verifying OOP Polymorphism (Operating Costs & Policy Clearance)... PASSED! (Polymorphic cost & policy clearance functioning)
-[TEST 3/5] Verifying Priority-First Strategy Execution & Collision Detection... PASSED! (Allocated: 4, Waitlisted: 3, Rejected: 1)
-[TEST 4/5] Verifying Strategy Pattern Runtime Switching (Fairness & Capacity)... PASSED! (All strategies executed cleanly)
-[TEST 5/5] Verifying File I/O Audit Report Generation... PASSED! (File generated at: reports\test_verification_report.txt, size: 2623 bytes)
-================================================================================
-SUMMARY: 5 / 5 TESTS PASSED SUCCESSFULLY (100% GREEN)
-================================================================================
+```bash
+javac -encoding UTF-8 -d bin -sourcepath src src/com/campus/Main.java src/com/campus/VerificationTest.java
+java -cp bin com.campus.Main              # launch the app
+java -cp bin com.campus.VerificationTest  # run the test suite
 ```
 
 ---
 
-## 9. Viva / Oral Examination Questions & Answers
+## 3. Architecture
 
-**Q1: How is Polymorphism demonstrated in this project?**
-> *Answer:* Through dynamic method dispatch. For instance, `Resource.calculateOperatingCostPerHour()` is overridden by `Classroom`, `Laboratory`, `Auditorium`, and `Equipment` to compute distinct operating costs. Also, `Requester.canBook(Resource)` allows `StudentClub` to reject bookings for hazardous laboratories, while `Department` permits it.
+SlotWise uses a four-layer architecture. Dependencies point **downward only**, and the domain layer has zero Swing imports.
 
-**Q2: What is the benefit of the Strategy Pattern here?**
-> *Answer:* It encapsulates different allocation algorithms (`PriorityStrategy`, `FairnessStrategy`, `CapacityStrategy`) behind the `AllocationStrategy` interface. The `SimulationEngine` depends only on the abstraction, allowing new algorithms to be added without modifying the engine (Open/Closed Principle).
+```mermaid
+flowchart TB
+    subgraph PRES["Presentation Layer — com.campus.gui"]
+        MF[MainFrame<br/>sidebar shell]
+        MF --> DP[DashboardPanel]
+        MF --> RP[ResourcePanel]
+        MF --> RQP[RequesterPanel]
+        MF --> QP[RequestPanel]
+        MF --> SP[SimulationPanel]
+        MF --> REP[ReportPanel]
+        UT[UITheme<br/>palette + Inter font]
+    end
 
-**Q3: How do you prevent UI freezing when running simulations?**
-> *Answer:* We use Java's `SwingWorker` to execute `SimulationEngine.runSimulation()` on a background worker thread while updating the `JProgressBar` on the Event Dispatch Thread (EDT).
+    subgraph SERV["Service Layer — com.campus.service"]
+        DB[(CampusDatabase<br/>Singleton, in-memory)]
+        SE[SimulationEngine<br/>rules + orchestration]
+        FRS[FileReportService<br/>File I/O]
+        EX[Custom exceptions]
+    end
 
-**Q4: How does the application detect schedule collisions?**
-> *Answer:* The `TimeSlot` value object implements interval arithmetic: two slots on the same date overlap if `(start1 < end2) && (start2 < end1)`. Before confirming any booking, the engine checks all active allocations for the same physical asset.
+    subgraph STRAT["Strategy Layer — com.campus.strategy"]
+        AS{{AllocationStrategy}}
+        PS[PriorityStrategy]
+        FS[FairnessStrategy]
+        CS[CapacityStrategy]
+        AS -.-> PS
+        AS -.-> FS
+        AS -.-> CS
+    end
+
+    subgraph DOM["Domain Layer — com.campus.model"]
+        R[Resource<br/>abstract]
+        RQ[Requester<br/>abstract]
+        AR[AllocationRequest]
+        AL[Allocation]
+        TS[TimeSlot<br/>value object]
+    end
+
+    PRES --> SERV
+    SE --> AS
+    SERV --> DOM
+    STRAT --> DOM
+```
+
+### Layer responsibilities
+
+| Layer | Package | Responsibility |
+|---|---|---|
+| **Presentation** | `com.campus.gui` | Swing panels, navigation, theming. Contains no business rules. Long-running work goes through `SwingWorker`. |
+| **Service** | `com.campus.service` | `CampusDatabase` holds all state; `SimulationEngine` applies rules and delegates decisions to a strategy; `FileReportService` writes audit files. |
+| **Strategy** | `com.campus.strategy` | Interchangeable algorithms that decide request order and resource choice. |
+| **Domain** | `com.campus.model` | Entities, enums and value objects. Pure Java, no UI or I/O. |
 
 ---
-*Created for academic demonstration and object-oriented software engineering evaluation.*
+
+## 4. How an Allocation Works
+
+### Request lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Request submitted
+    PENDING --> ALLOCATED: Viable resource found
+    PENDING --> WAITLISTED: Clash, maintenance or capacity
+    PENDING --> REJECTED: Policy violation / no matching resource
+    ALLOCATED --> CANCELLED: Cancelled
+    WAITLISTED --> PENDING: Queue reset
+    REJECTED --> PENDING: Queue reset
+```
+
+### Simulation sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    participant UI as SimulationPanel
+    participant W as SwingWorker
+    participant E as SimulationEngine
+    participant S as AllocationStrategy
+    participant D as CampusDatabase
+
+    Admin->>UI: Run Simulation
+    UI->>W: Start background thread
+    W->>E: runSimulation()
+    E->>D: clearAllocations(), get PENDING requests
+    E->>S: prioritizeRequests(pending)
+    S-->>E: ordered list
+    loop each request
+        E->>E: Rule 1 requester already busy? → WAITLIST
+        E->>E: Rule 2 any resource of requested type? else REJECT
+        E->>E: Rule 3 requester.canBook(any)? else REJECT
+        E->>E: Rule 4 filter: maintenance, capacity, policy, slot clash
+        alt no viable resource
+            E->>E: mark WAITLISTED with reasons
+        else viable resources exist
+            E->>S: selectBestResource(request, viable)
+            S-->>E: chosen resource
+            E->>D: addAllocation(new Allocation)
+            E->>E: mark ALLOCATED
+        end
+    end
+    E-->>W: processed requests
+    W-->>UI: refresh table + dashboard (on EDT)
+```
+
+### Decision rules (in order)
+
+1. **Requester self-clash** → waitlist
+2. **No resource of the requested type exists** → reject
+3. **Requester lacks clearance for every candidate** (polymorphic `canBook`) → reject
+4. **Per-candidate filter**: under maintenance, too small, no clearance, or already booked in that slot
+5. **No candidates left** → waitlist, with every reason recorded
+6. **Otherwise** → strategy picks the winner; booking is created
+
+---
+
+## 5. Allocation Strategies
+
+All strategies implement `AllocationStrategy` (`prioritizeRequests`, `selectBestResource`, `getName`, `getDescription`). The engine swaps them with `engine.setStrategy(...)`.
+
+| Strategy | Ordering | Resource choice |
+|---|---|---|
+| **Priority-First** | Combined score, highest first. Base score: Department 60, Faculty 45, Club 25, plus urgency × 10. | First viable resource |
+| **Fairness-Aware** | `score / (1 + 1.5 × allocationsAlreadyHeld)` — heavy users are progressively down-weighted | First viable resource |
+| **Capacity-Optimized** | Best-fit ordering | Smallest room that still fits (minimizes empty seats) |
+
+---
+
+## 6. Domain Model
+
+```mermaid
+classDiagram
+    class Bookable {
+        <<interface>>
+        +isAvailable() boolean
+        +book() boolean
+        +release()
+    }
+    class Resource {
+        <<abstract>>
+        +calculateOperatingCostPerHour()*
+        +canAccommodate(int) boolean
+        +isUnderMaintenance() boolean
+    }
+    class Requester {
+        <<abstract>>
+        +getBasePriorityScore()*
+        +canBook(Resource)* boolean
+        +calculateEffectiveScore() int
+    }
+    class AllocationRequest
+    class Allocation
+    class TimeSlot {
+        +overlaps(TimeSlot) boolean
+    }
+
+    Bookable <|.. Resource
+    Resource <|-- Classroom
+    Resource <|-- Laboratory
+    Resource <|-- Auditorium
+    Resource <|-- Equipment
+    Requester <|-- Department
+    Requester <|-- FacultyMember
+    Requester <|-- StudentClub
+    AllocationRequest --> Requester
+    AllocationRequest --> TimeSlot
+    Allocation --> Resource
+    Allocation --> AllocationRequest
+```
+
+**Enums:** `ResourceType`, `RequesterType`, `PriorityLevel` (LOW → URGENT), `RequestStatus` (PENDING, ALLOCATED, WAITLISTED, REJECTED, CANCELLED).
+
+**Collision check:** two slots on the same date overlap when `start₁ < end₂ && start₂ < end₁`.
+
+---
+
+## 7. Design Patterns & OOP Concepts
+
+### Patterns
+
+| Pattern | Where | Purpose |
+|---|---|---|
+| **Strategy** | `AllocationStrategy` + 3 implementations | Swap algorithms at runtime without touching the engine (Open/Closed) |
+| **Factory Method** | `ResourceFactory` | UI creates resources without calling concrete constructors |
+| **Singleton** | `CampusDatabase` | One shared in-memory repository |
+
+### OOP principles
+
+| Principle | Example |
+|---|---|
+| **Encapsulation** | `TimeSlot` is immutable and validates `end > start`; capacity validated in constructors |
+| **Abstraction** | `Bookable`, abstract `Resource` and `Requester` |
+| **Inheritance** | 4 resource subclasses, 3 requester subclasses |
+| **Polymorphism** | `calculateOperatingCostPerHour()` differs per resource; `StudentClub.canBook()` blocks hazardous labs while `Department.canBook()` allows them |
+| **Composition** | `AllocationRequest` has-a `Requester` + `TimeSlot`; `Allocation` has-a `Resource` + `AllocationRequest` |
+
+### Java features used
+
+Collections (`List`, `unmodifiableList`), Streams & lambdas, custom exceptions (`ResourceUnavailableException`, `InvalidBookingException`), `SwingWorker` multithreading, File I/O with try-with-resources, `equals`/`hashCode` on value objects.
+
+---
+
+## 8. Project Structure
+
+```
+slotwise/
+├── compile.bat / compile.sh     # Build scripts
+├── run.bat / run.sh             # Launch GUI
+├── test.bat / test.sh           # Run verification suite
+├── resources/Inter.ttf          # Bundled font
+├── reports/                     # Exported audit files
+└── src/com/campus/
+    ├── Main.java                # Entry point
+    ├── VerificationTest.java    # Automated test suite
+    ├── model/                   # Domain: Resource, Requester, TimeSlot, Allocation, enums, ResourceFactory
+    ├── strategy/                # AllocationStrategy + Priority / Fairness / Capacity
+    ├── service/                 # CampusDatabase, SimulationEngine, FileReportService, exceptions
+    └── gui/                     # MainFrame, UITheme, and the six panels
+```
+
+---
+
+## 9. Testing
+
+`VerificationTest` is a dependency-free suite with five checks:
+
+1. Singleton database and seed data (11 resources, 7 requesters, 8 requests)
+2. Polymorphic operating costs and policy clearance
+3. Priority strategy and collision detection
+4. Runtime strategy switching
+5. File I/O audit report generation
+
+```
+SUMMARY: 5 / 5 TESTS PASSED SUCCESSFULLY
+```
+
+---
+
+## 10. Design Decisions
+
+- **Plain `javac`, no build tool.** Builds never fail on machines with proxy issues or no internet; the scripts make setup one click.
+- **Domain has no Swing imports.** A console or web front end could be added without touching business logic.
+- **Strategies as classes.** Algorithms are easy to read, compare, and extend independently.
+- **Simulation off the EDT.** `SwingWorker` keeps the UI responsive during runs.
+
+---
+
+## 11. Future Work
+
+- Persistent storage (file or SQLite) instead of in-memory seed data
+- Recurring bookings and calendar view
+- Waitlist auto-promotion when a booking is cancelled
+- Console / REST front end on top of the existing service layer
+- JUnit migration for the verification suite
+
+---
+
+*Built as an object-oriented software engineering project.*
