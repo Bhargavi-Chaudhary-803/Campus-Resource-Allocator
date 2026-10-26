@@ -1,4 +1,4 @@
-# 🎓 SlotWise
+# SlotWise
 
 ### Smart Campus Resource Allocation Simulator
 
