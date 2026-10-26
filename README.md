@@ -2,11 +2,9 @@
 
 ### Smart Campus Resource Allocation Simulator
 
-> Fair, conflict-free booking of classrooms, labs, auditoriums and equipment — with swappable allocation strategies you can compare live.
+> Fair, conflict-free booking of classrooms, labs, auditoriums and equipment with swappable allocation strategies one can compare live.
 
 **SlotWise** is a pure-Java desktop application that simulates how a university decides who gets which room, when. Departments, faculty and student clubs compete for limited facilities; SlotWise detects clashes, enforces safety policy, and lets an administrator switch between allocation algorithms at runtime to see how each one changes fairness and utilization.
-
-No Maven. No Gradle. No external libraries. Just `javac`.
 
 ---
 
