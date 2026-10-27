@@ -128,42 +128,6 @@ stateDiagram-v2
     REJECTED --> PENDING: Queue reset
 ```
 
-### Simulation sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admin
-    participant UI as SimulationPanel
-    participant W as SwingWorker
-    participant E as SimulationEngine
-    participant S as AllocationStrategy
-    participant D as CampusDatabase
-
-    Admin->>UI: Run Simulation
-    UI->>W: Start background thread
-    W->>E: runSimulation()
-    E->>D: clearAllocations(), get PENDING requests
-    E->>S: prioritizeRequests(pending)
-    S-->>E: ordered list
-    loop each request
-        E->>E: Rule 1 requester already busy? → WAITLIST
-        E->>E: Rule 2 any resource of requested type? else REJECT
-        E->>E: Rule 3 requester.canBook(any)? else REJECT
-        E->>E: Rule 4 filter: maintenance, capacity, policy, slot clash
-        alt no viable resource
-            E->>E: mark WAITLISTED with reasons
-        else viable resources exist
-            E->>S: selectBestResource(request, viable)
-            S-->>E: chosen resource
-            E->>D: addAllocation(new Allocation)
-            E->>E: mark ALLOCATED
-        end
-    end
-    E-->>W: processed requests
-    W-->>UI: refresh table + dashboard (on EDT)
-```
-
 ### Decision rules (in order)
 
 1. **Requester self-clash** → waitlist
