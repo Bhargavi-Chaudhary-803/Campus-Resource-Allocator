@@ -15,12 +15,9 @@
 3. [Architecture](#3-architecture)
 4. [How an Allocation Works](#4-how-an-allocation-works)
 5. [Allocation Strategies](#5-allocation-strategies)
-6. [Domain Model](#6-domain-model)
-7. [Design Patterns & OOP Concepts](#7-design-patterns--oop-concepts)
-8. [Project Structure](#8-project-structure)
-9. [Testing](#9-testing)
-10. [Design Decisions](#10-design-decisions)
-11. [Future Work](#11-future-work)
+6. [Design Patterns & OOP Concepts](#7-design-patterns--oop-concepts)
+7. [Project Structure](#8-project-structure)
+8. [Future Work](#11-future-work)
 
 ---
 
@@ -113,7 +110,7 @@ flowchart TB
     STRAT --> DOM
 ```
 
-## 4. How an Allocation Works
+## 4. How an Allocation Works?
 
 ### Request lifecycle
 
@@ -167,7 +164,7 @@ Collections (`List`, `unmodifiableList`), Streams & lambdas, custom exceptions (
 
 ---
 
-## 8. Project Structure
+## 7. Project Structure
 
 ```
 slotwise/
@@ -184,7 +181,7 @@ slotwise/
     ├── service/                 # CampusDatabase, SimulationEngine, FileReportService, exceptions
     └── gui/                     # MainFrame, UITheme, and the six panels
 ```
-## 11. Future Work
+## 8. Future Work
 
 - Persistent storage (file or SQLite) instead of in-memory seed data
 - Recurring bookings and calendar view
